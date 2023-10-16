@@ -1,0 +1,113 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.c88.admin.mapper.SysUserMapper">
+
+    <!-- 获取用户分页列表 -->
+    <select id="listUsersPage" resultMap="UserPageMap">
+        select sys_user.id,
+        sys_user.username username
+        from sys_user where deleted = 0
+    </select>
+
+    <!-- 用户表单信息映射 -->
+    <resultMap id="UserPageMap" type="com.c88.admin.pojo.vo.user.UserPageVO">
+        <id property="id" column="id" jdbcType="BIGINT"/>
+        <result property="username" column="username" jdbcType="VARCHAR"/>
+        <collection property="roleList" column="id" javaType="ArrayList"
+                    select="com.c88.admin.mapper.SysUserRoleMapper.listRoleByUserId">
+            <id column="id" property="id"/>
+            <result column="name" property="name"></result>
+            <result column="remark" property="remark"></result>
+        </collection>
+    </resultMap>
+
+    <!-- 用户表单信息映射 -->
+    <resultMap id="UserFormMap" type="com.c88.admin.pojo.vo.user.UserDetailVO">
+        <id property="id" column="id" jdbcType="BIGINT"/>
+        <result property="username" column="username" jdbcType="VARCHAR"/>
+        <result property="nickname" column="nickname" jdbcType="VARCHAR"/>
+        <result property="mobile" column="mobile" jdbcType="VARCHAR"/>
+        <result property="gender" column="gender" jdbcType="TINYINT"/>
+        <result property="avatar" column="avatar" jdbcType="VARCHAR"/>
+        <result property="email" column="email" jdbcType="VARCHAR"/>
+        <result property="status" column="status" jdbcType="BOOLEAN"/>
+        <result property="deptId" column="dept_id" jdbcType="BIGINT"></result>
+        <collection
+                property="roleIds"
+                column="id"
+                select="com.c88.admin.mapper.SysUserRoleMapper.listRoleIdsByUserId">
+            <result column="role_id"/>
+        </collection>
+    </resultMap>
+
+    <!-- 根据用户ID获取用户详情 -->
+    <select id="getUserDetail" resultMap="UserFormMap">
+        SELECT id,
+        username,
+        nickname,
+        mobile,
+        gender,
+        avatar,
+        email,
+        STATUS,
+        dept_id
+        FROM sys_user
+        WHERE id = #{userId}
+        AND deleted = 0
+    </select>
+
+    <!-- 用户认证信息映射 -->
+    <resultMap id="AuthUserMap" type="com.c88.admin.dto.AuthUserDTO">
+        <id property="userId" column="userId" jdbcType="BIGINT"/>
+        <result property="username" column="username" jdbcType="VARCHAR"/>
+        <result property="password" column="password" jdbcType="VARCHAR"/>
+        <result property="status" column="status" jdbcType="BOOLEAN"/>
+        <result property="deptId" column="deptId" jdbcType="BIGINT"></result>
+        <collection property="roles" ofType="string" javaType="list">
+            <result column="roleCode"></result>
+        </collection>
+    </resultMap>
+
+    <!-- 根据用户名获取认证信息 -->
+    <select id="getAuthInfoByUsername" resultMap="AuthUserMap">
+        SELECT
+        t1.id userId,
+        t1.username,
+        t1.nickname,
+        t1.PASSWORD,
+        t1.STATUS,
+        t1.dept_id deptId,
+        t3.CODE roleCode
+        FROM
+        sys_user t1
+        LEFT JOIN sys_user_role t2 ON t2.user_id = t1.id
+        LEFT JOIN sys_role t3 ON t3.id = t2.role_id
+        WHERE
+        t1.username = #{username} and t1.deleted=0
+    </select>
+
+    <select id="getUserByRoleId" resultType="java.lang.String">
+        SELECT
+        t1.username
+        FROM
+        sys_user_role t2 LEFT JOIN sys_user t1 ON t2.user_id = t1.id
+        WHERE
+        t2.role_id = #{roleId}
+    </select>
+
+    <select id="findUserByRoleIds" resultType="java.lang.String">
+        SELECT
+        DISTINCT t1.username
+        FROM
+        sys_user_role t2 LEFT JOIN sys_user t1 ON t2.user_id = t1.id
+        WHERE
+        t2.role_id in
+        <foreach collection="roleIds" item="id" index="index" open="(" close=")" separator=",">
+            #{id}
+        </foreach>
+    </select>
+
+
+</mapper>

@@ -1,0 +1,5 @@
+org.springframework.boot.autoconfigure.EnableAutoConfiguration=\
+  com.c88.admin.api.fallback.UserFeignFallbackClient,\
+  com.c88.admin.api.fallback.OAuthClientFeignFallbackClient,\
+  com.c88.admin.api.fallback.RiskConfigFeignFallbackClient, \
+  com.c88.admin.api.fallback.TagFeignFallbackClient

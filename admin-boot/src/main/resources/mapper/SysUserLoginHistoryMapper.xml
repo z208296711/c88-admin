@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.c88.admin.mapper.SysUserLoginHistoryMapper">
+
+    <!-- 获取用户分页列表 -->
+    <select id="listUsersLoginPage" resultType="com.c88.admin.pojo.vo.user.UserLoginHistoryPageVO">
+        SELECT * from sys_user_login_history
+        <where>
+            <if test ='queryParams.username !=null ' >
+                AND username= #{queryParams.username}
+            </if>
+            <if test ='queryParams.ip !=null ' >
+                AND ip= #{queryParams.ip}
+            </if>
+            <if test ='queryParams.beginDate !=null and  queryParams.beginDate.trim() neq ""' >
+                AND gmt_create &gt;= #{queryParams.beginDate}
+            </if>
+            <if test ='queryParams.endDate !=null and  queryParams.endDate.trim() neq ""' >
+                AND gmt_create &lt;= #{queryParams.endDate}
+            </if>
+        </where>
+        order by gmt_create desc
+    </select>
+
+    <select id="getLoginSummary" resultType="com.c88.admin.pojo.vo.user.UserLoginSummaryVO">
+        select a.user_id userId,
+               a.username username,
+               a.loginCount loginCount,
+               sulh.ip lastLoginIp
+        from
+             (select user_id,
+                     username,
+                     ip,
+                     count(1)        loginCount,
+                     max(gmt_create) loginTime
+              from sys_user_login_history
+              where user_id in
+        <foreach collection="list" item="id" index="index" open="(" close=")" separator=",">
+            #{id}
+        </foreach>
+
+              group by user_id) a  left join sys_user_login_history sulh on a.user_id = sulh.user_id
+        where a.loginTime = sulh.gmt_create
+    </select>
+
+</mapper>

@@ -1,0 +1,47 @@
+server:
+  port: 8080
+  servlet:
+    context-path: /admin
+  shutdown: graceful
+spring:
+  lifecycle:
+    timeout-per-shutdown-phase: 20s
+  application:
+    name: admin
+  main:
+    allow-bean-definition-overriding: true
+  cache:
+    # 缓存类型 redis、none(不使用缓存)
+    type: none
+    # 缓存时间(单位：ms)
+    redis:
+      time-to-live: 3600000
+      # 缓存null值，防止缓存穿透
+      cache-null-values: true
+      # 允许使用缓存前缀
+      use-key-prefix: true
+      # 缓存前缀，没有设置使用注解的缓存名称(value)作为前缀，和注解的key用双冒号::拼接组成完整缓存key
+      key-prefix: 'admin:'
+
+management:
+  server:
+    port: 18080
+  endpoint:
+    shutdown:
+      enabled: true
+    health:
+      probes:
+        enabled: true
+      enabled: true
+  endpoints:
+    web:
+      exposure:
+        include: '*'
+  health:
+    livenessstate:
+      enabled: true
+    readinessstate:
+      enabled: true
+
+
+
